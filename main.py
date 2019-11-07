@@ -1,27 +1,29 @@
-import glob, configparser, os
+import glob, configparser, os, io
 
 '''
 Ignore can be a set of extensions or directories (similar to .gitignore)
 '''
+
 
 def ignore_config_parser(path_ignore):
     '''
     parser for .ini style ignore config file
     '''
 
-    config = configparser.ConfigParser(allow_no_value = True)
+    config = configparser.ConfigParser(allow_no_value=True)
     config.read(path_ignore)
     directories = [x[0] for x in config.items('directories')]
     extensions = [x[0] for x in config.items('extensions')]
     specifics = [x[0] for x in config.items('specifics')]
 
     data = {
-        'directories' : directories,
-        'extensions' : extensions,
-        'specifics' : specifics,
+        'directories': directories,
+        'extensions': extensions,
+        'specifics': specifics,
     }
 
     return data
+
 
 def can_file_be_ignored(filepath, ignore):
     '''
@@ -47,6 +49,7 @@ def can_file_be_ignored(filepath, ignore):
 
     return False
 
+
 def get_files_in_directory(dirname, ignore):
     '''
     check all files in a directory to see which can be ignored per ignore settings
@@ -54,7 +57,6 @@ def get_files_in_directory(dirname, ignore):
     files = [f for f in glob.iglob(dirname + '**/**', recursive=True)]
     files = [x for x in files if not can_file_be_ignored(x, ignore)]
     files = [x for x in files if not os.path.isdir(x)]
-    print(files)
     return files
 
 
@@ -68,12 +70,13 @@ template = '''
 
 '''
 
+
 def generate_markdown_file(filepaths, targetpath):
-    target = open('{target}'.format(target=targetpath), 'w+')
+    target = io.open('{target}'.format(target=targetpath), 'w+', encoding='utf-8')
     for file in filepaths:
-        temp = open(file, 'r+')
+        temp = io.open(file, 'r', encoding='utf-8')
         lines = temp.readlines()
-        dump = ""
+        dump = u""
         for line in lines:
             dump += line
         dump = (dump.rstrip()).lstrip()
@@ -83,7 +86,7 @@ def generate_markdown_file(filepaths, targetpath):
 
 
 if __name__ == '__main__':
-    logo = '''
+    logo = '''\033[1;32;40m
                _      ___                       _       _                     
               | |    |__ \                     | |     | |                    
   ___ ___   __| | ___   ) |_ __ ___   __ _ _ __| | ____| | _____      ___ __  
@@ -93,18 +96,13 @@ if __name__ == '__main__':
 
 '''
     print(logo)
-    print(" Welcome to code2markdown!")
+    print("Welcome to code2markdown!")
     projpath = input("Please enter path of folder to capture  >>> ")
     targetname = input("Enter the path/name of the file to write to (eg - 'test.md' ) >>> ")
     ignorepath = input("Enter ignorefile path/filename >>> ")
     ignore = ignore_config_parser(ignorepath)
-    print(" Processing ... ")
+    print("Processing ... ")
     files = get_files_in_directory(projpath, ignore)
-    print(" Generating markdown file ... ")
+    print("Generating markdown file ... ")
     generate_markdown_file(files, targetname)
-    print(" Successfully generated at {filename}".format(filename=targetname))
-
-
-
-
-
+    print("Successfully generated at {filename}".format(filename=targetname))
